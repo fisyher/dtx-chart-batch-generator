@@ -1,0 +1,32 @@
+{
+  "name": "dtx-chart-batch-generator",
+  "version": "0.0.1",
+  "description": "Generates multiple DTX chart images in batches",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fisyher/dtx-chart-batch-generator.git"
+  },
+  "keywords": [
+    "DTX",
+    "html5",
+    "node-canvas"
+  ],
+  "author": "fisyher",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fisyher/dtx-chart-batch-generator/issues"
+  },
+  "homepage": "https://github.com/fisyher/dtx-chart-batch-generator#readme",
+  "dependencies": {
+    "canvas": "^1.6.9",
+    "ejs": "^2.5.7",
+    "fabric": "^2.0.3",
+    "filehound": "^1.16.2",
+    "object-hash": "^1.2.0",
+    "strip-bom": "^3.0.0"
+  }
+}
