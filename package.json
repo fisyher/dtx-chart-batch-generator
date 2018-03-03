@@ -4,6 +4,7 @@
   "description": "Generates multiple DTX chart images in batches",
   "main": "index.js",
   "scripts": {
+	"start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +23,7 @@
   },
   "homepage": "https://github.com/fisyher/dtx-chart-batch-generator#readme",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "canvas": "^1.6.9",
     "ejs": "^2.5.7",
     "fabric": "^2.0.3",
