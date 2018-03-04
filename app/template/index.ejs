@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+table, th, td {
+    border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<h2>DTX Chart List</h2>
+<span><%=songCount%> songs chart generated</span>
+<table>
+<tbody>
+<tr>
+<th rowspan="2">Title</th>
+<th colspan="5">Drum</th>
+<th colspan="5">Guitar</th>
+<th colspan="5">Basics</th>
+</tr>
+<tr>
+<th>Basic</th>
+<th>Advanced</th>
+<th>Extreme</th>
+<th>Master</th>
+<th>Ultimate</th>
+<th>Basic</th>
+<th>Advanced</th>
+<th>Extreme</th>
+<th>Master</th>
+<th>Ultimate</th>
+<th>Basic</th>
+<th>Advanced</th>
+<th>Extreme</th>
+<th>Master</th>
+<th>Ultimate</th>
+</tr>
+<% for(var i in songs) {%>
+<tr>
+<td><%=songs[i].title %></td>
+<% for(var j = 0; j < songs[i].levels.length; ++j) {%>
+<td><a href="<%=songs[i].chartsUrl[j]%>"><%=songs[i].levels[j]%></a></td><%}%>
+</tr><%}%>
+</tbody>
+</table>
+</body>
+</html>

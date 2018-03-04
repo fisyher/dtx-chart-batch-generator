@@ -51,9 +51,11 @@ module.exports = function dtxbatchapplication(){
     outputPath = "output",
     dtxFileExt = "dtx",
     defFileExt = "def";
-    var diffcultyTier = ["Basic", "Advanced", "Extreme", "Master", "Ultimate"];
-    var diffcultyTierMap = {"Basic": 0, "Advanced": 1, "Extreme": 2, "Master": 3, "Ultimate": 5};
-    var modeMap = {"drum": 0, "guitar": 1, "bass": 2}
+    const diffcultyTier = ["Basic", "Advanced", "Extreme", "Master", "Ultimate"];
+    const diffcultyTierMap = {"Basic": 0, "Advanced": 1, "Extreme": 2, "Master": 3, "Ultimate": 5};
+    const modeMap = {"drum": 0, "guitar": 1, "bass": 2};
+    const diffcultyTierCount = 5;
+    const modeCount = 3;
     
 
     //Starting point
@@ -80,7 +82,7 @@ module.exports = function dtxbatchapplication(){
                         //Get Containing Directory of def file
                         //Nesting is required because we need access to defFiles by closure
                         var dirPath = path.dirname(defFiles[i]);
-                        console.log(dirPath);
+                        //console.log(dirPath);
 
                         //Return a list of songs, each having different difficulty of dtx
                         var setDefFileObject = setDef.parseDefFile(content);
@@ -117,12 +119,12 @@ module.exports = function dtxbatchapplication(){
             //3rd stage: Prepare to draw dtx charts
             .all()
             .then(function(dtxPlusObjectArray){
-                console.log(dtxPlusObjectArray.length);
-                let promises = []
+                //console.log(dtxPlusObjectArray.length);
+                let promises = [];
                 for(let i in dtxPlusObjectArray){
                     let dtxPlusObject = dtxPlusObjectArray[i];
                     if(dtxPlusObject !== null){                        
-                        console.log(dtxPlusObject.title + " " + dtxPlusObject.difficulty);
+                        //console.log(dtxPlusObject.title + " " + dtxPlusObject.difficulty);
 
                         var hashTitle = objectHash(dtxPlusObject.title);
                         //Make dir
@@ -154,14 +156,45 @@ module.exports = function dtxbatchapplication(){
             })
             .all()
             .then(function(dtxPageInfoObjectArray){
-                console.log(dtxPageInfoObjectArray);
-                // for (let i = 0; i < dtxPageInfoObjectArray.length; i++) {
-                //     const dtxPageInfoObject = dtxPageInfoObjectArray[i];
-                //     if(dtxPageInfoObject){
-                //         let hashTitle = objectHash(dtxPageInfoObject.title);
-                //     }
+                //console.log(dtxPageInfoObjectArray);
+                var songList = {};
+                var songCount = 0;
+                for (let i = 0; i < dtxPageInfoObjectArray.length; i++) {
+                    const dtxPageInfoObject = dtxPageInfoObjectArray[i];
+                    if(dtxPageInfoObject){
+                        let hashTitle = objectHash(dtxPageInfoObject.title);
+                        if(!songList.hasOwnProperty(hashTitle)){
+                            songList[hashTitle] = {};
+                            songList[hashTitle].title = dtxPageInfoObject.title;                            
+                            songList[hashTitle].chartsUrl = Array(diffcultyTierCount*modeCount).fill('');
+                            songList[hashTitle].graphsUrl = Array(diffcultyTierCount*modeCount).fill('');
+                            songList[hashTitle].levels = Array(diffcultyTierCount*modeCount).fill('');
+                            songCount++;
+                        }
+                        //
+                        const colIndex = computeColumnIndex(dtxPageInfoObject.chartMode, dtxPageInfoObject.difficulty);
+                        songList[hashTitle].chartsUrl[colIndex] = dtxPageInfoObject.url;
+                        songList[hashTitle].levels[colIndex] = dtxPageInfoObject.level;
+                        //TODO: add graph url later
+                    }
                     
-                // }
+                }
+                //console.log(songList);
+
+                //Return a songList
+                return {songs: songList, songCount: songCount};
+            })
+            .then(function(inData){
+                //Render and output index.html based on song list
+                //console.log(inData);
+                ejs.renderFile("./app/template/index.ejs", inData, {}, function(err, str){
+                    if(err) throw err;
+                    // str => Rendered HTML string
+                    fs.writeFile(path.join(outputPath, "index.html"), str, 'utf8', function(error){
+                        if(error) throw(error);
+                    });
+                    
+                });
             })
             .catch(function(err){
                 console.log(err);
@@ -194,7 +227,7 @@ module.exports = function dtxbatchapplication(){
                 
             })
             .catch(function(err){
-                console.log(err);
+                //console.log(err);
             });
     }
 
@@ -274,23 +307,44 @@ module.exports = function dtxbatchapplication(){
 
     //TODO: convert to promise type
     function saveCanvasAsImage(canvas, outfileName){
-        var out = fs.createWriteStream(outfileName);
-        var stream = canvas.createPNGStream();
-        stream.on('data', function(chunk) {
-            out.write(chunk);
-        });
-        stream.on('end', function(){
-            out.end();
-            canvas.dispose();
-            //console.log(canvas, " is disposed");
-        });
+        let dataURL = canvas.toDataURL({format:'png'});
+    
+        fs.writeFileAsync(outfileName, dataURL.replace(/^data:image\/png;base64,/, ""), 'base64')
+            .then(function(data){
+                //console.log(data);
+                //canvas.dispose();
+            })
+            .catch(function(err){
+                console.log(err);
+            });
+        // var out = fs.createWriteStream(outfileName);
+        // var stream = canvas.createPNGStream();
+        // stream.on('data', function(chunk) {
+        //     out.write(chunk);
+        // });
+        // stream.on('end', function(){
+        //     out.end();
+        //     canvas.dispose();
+        //     //console.log(canvas, " is disposed");
+        // });
+        // out.on('finish', function(){
+        //     console.log(out, " is done");
+        // });
+    }
+
+    function computeColumnIndex(chartMode, difficulty){
+        /*
+         var diffcultyTierMap = {"Basic": 0, "Advanced": 1, "Extreme": 2, "Master": 3, "Ultimate": 5};
+    var modeMap = {"drum": 0, "guitar": 1, "bass": 2}
+        */
+       return modeMap[chartMode.toLowerCase()] * 5 + diffcultyTierMap[difficulty];
     }
 
     function mkdirSync(dirPath) {
         try {
-          fs.mkdirSync(dirPath)
+          fs.mkdirSync(dirPath);
         } catch (err) {
-          if (err.code !== 'EEXIST') throw err
+          if (err.code !== 'EEXIST') throw err;
         }
       }
 
